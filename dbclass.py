@@ -1,11 +1,10 @@
 import sqlite3
 # The methods in class assume proper input. The error catching is to be done outside the method scopes.
-class dbclass(object):
+class DbClass(object):
     # Initializes a database named by parameter input.
     # Initializes a cursor.
     def __init__(self, dbase):
 
-        dbase +=".db"
         try:
             self.db = sqlite3.connect(database=dbase)
             self.c = self.db.cursor()
@@ -14,33 +13,39 @@ class dbclass(object):
             print("An error has occured!")
             
     # Creates a table in the database.
-    def createtbl(tname, cnames):
+    # Tables will automatically include a "Log" column that numbers entries.
+    def createtbl(self, tname, cnames):
         self.c.execute("CREATE TABLE "+tname+" (Log INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"+cnames+")")
         self.db.commit()
         
     # Inserts a row of data into a given table.
-    def intotbl(tbl, tcols, tdata):
+    def intotbl(self, tbl, tcols, tdata):
         self.c.execute('INSERT INTO '+tbl+' ('+tcols+') VALUES ('+tdata+')')
         self.db.commit()
 
     # Returns a list of the names of tables in the database.
-    def tbllist():
+    def tbllist(self):
         self.c.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = self.c.fetchall()
         return tables
     
     # Deletes a table from the database.
-    def deletetbl(tbl):
+    def deletetbl(self, tbl):
         self.c.execute("DROP TABLE "+tbl)
         self.db.commit()
 
     # Edit a cell in a table in the database.
-    def editcell(tbl,col,val,idx):
+    def editcell(self, tbl, col, val, idx):
         self.c.execute("UPDATE "+tbl+" SET "+col+"="+val+" WHERE Log="+idx)
         self.db.commit()
-        
+
+    # Deletes a row given by "Log" number in a given table.
+    def delrow(self, tbl, idx):
+        self.c.execute("DELETE FROM "+tbl+" WHERE Log="+idx)
+        self.db.commit()
+
     # Prints a table's header.
-    def header(tbl):
+    def header(self, tbl):
         self.c.execute("PRAGMA table_info("+tbl+");")
         rawout = self.c.fetchall()
         rolen = len(rawout)
@@ -55,7 +60,7 @@ class dbclass(object):
         print(refined)
 
     # Prints out a table.
-    def viewtbl(tbl):
+    def viewtbl(self, tbl):
         # retrieve table/column length
         self.c.execute("PRAGMA table_info("+tbl+");")
         rawout = self.c.fetchall()
@@ -118,5 +123,5 @@ class dbclass(object):
                 line += cell
                 idx2 += 1
             print(line+"|")
-    
+
 
