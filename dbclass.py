@@ -1,5 +1,5 @@
 import sqlite3
-# The methods in class assume proper input. The error catching is to be done outside the method scopes.
+# Class for interacting with sqlite3 databases.
 class DbClass(object):
     # Initializes a database named by parameter input.
     # Initializes a cursor.
@@ -14,13 +14,13 @@ class DbClass(object):
             
     # Creates a table in the database.
     # Tables will automatically include a "Log" column that numbers entries.
-    def createtbl(self, tname, cnames):
-        self.c.execute("CREATE TABLE "+tname+" (Log INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"+cnames+")")
+    def createtbl(self, table, columns):
+        self.c.execute("CREATE TABLE "+table+" (Log INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"+columns+")")
         self.db.commit()
         
     # Inserts a row of data into a given table.
-    def intotbl(self, tbl, tcols, tdata):
-        self.c.execute('INSERT INTO '+tbl+' ('+tcols+') VALUES ('+tdata+')')
+    def intotbl(self, table, columns, data):
+        self.c.execute('INSERT INTO '+table+' ('+columns+') VALUES ('+data+')')
         self.db.commit()
 
     # Returns a list of the names of tables in the database.
@@ -30,39 +30,40 @@ class DbClass(object):
         return tables
     
     # Deletes a table from the database.
-    def deletetbl(self, tbl):
-        self.c.execute("DROP TABLE "+tbl)
+    def deletetbl(self, table):
+        self.c.execute("DROP TABLE "+table)
         self.db.commit()
 
     # Edit a cell in a table in the database.
-    def editcell(self, tbl, col, val, idx):
-        self.c.execute("UPDATE "+tbl+" SET "+col+"="+val+" WHERE Log="+idx)
+    def editcell(self, table, column, data, idx):
+        self.c.execute("UPDATE "+table+" SET "+column+"="+data+" WHERE Log="+idx)
         self.db.commit()
 
     # Deletes a row given by "Log" number in a given table.
-    def delrow(self, tbl, idx):
-        self.c.execute("DELETE FROM "+tbl+" WHERE Log="+idx)
+    def delrow(self, table, idx):
+        self.c.execute("DELETE FROM "+table+" WHERE Log="+idx)
         self.db.commit()
 
     # Prints a table's header.
-    def header(self, tbl):
-        self.c.execute("PRAGMA table_info("+tbl+");")
+    def header(self, table):
+        self.c.execute("PRAGMA table_info("+table+");")
         rawout = self.c.fetchall()
         rolen = len(rawout)
         i = 1
-        refined = "\n[ "
+        refined = "[ "
         while(i < rolen):
             #refined += rawout[i][1]+" ("+rawout[i][2]+") "
             # Line above was used for debuging purposes, prints a schema.
             refined += " |"+rawout[i][1]+"| "
             i += 1 
-        refined += "]\n"
-        print(refined)
+        refined += "]"
+        #print(refined)
+        return refined
 
     # Prints out a table.
-    def viewtbl(self, tbl):
+    def viewtbl(self, table):
         # retrieve table/column length
-        self.c.execute("PRAGMA table_info("+tbl+");")
+        self.c.execute("PRAGMA table_info("+table+");")
         rawout = self.c.fetchall()
         rlen = len(rawout)                  # column length number
 
@@ -83,7 +84,7 @@ class DbClass(object):
         # Printing the entire table
                     
         # recording max cell space per column
-        result = self.c.execute("SELECT Log"+colnames+" FROM "+tbl)
+        result = self.c.execute("SELECT Log"+colnames+" FROM "+table)
         for row in result:
             idx1 = 0
             while idx1 < rlen:
@@ -93,7 +94,7 @@ class DbClass(object):
 
         # printing table head
         buffer = ""
-        self.c.execute("PRAGMA table_info("+tbl+");")
+        self.c.execute("PRAGMA table_info("+table+");")
         i = 0
         ref = ""
         while(i < rlen):
@@ -107,7 +108,7 @@ class DbClass(object):
         print(ref)
 
         # printing table body
-        result = self.c.execute("SELECT Log"+colnames+" FROM "+tbl)             
+        result = self.c.execute("SELECT Log"+colnames+" FROM "+table)             
         for row in result:
             idx2 = 0
             line = ""
@@ -123,5 +124,4 @@ class DbClass(object):
                 line += cell
                 idx2 += 1
             print(line+"|")
-
 
